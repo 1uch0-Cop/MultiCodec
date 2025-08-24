@@ -1,5 +1,5 @@
 #1uch0 @2025
-# Multi-Decoder Python | Herramienta en Python para codificar y decodificar mensajes con varios métodos comunes en CTF y programación:
+# Multi-Decoder Python | Python tool to encode and decode messages with various common methods in CTF and programming:
 
 import base64
 import binascii
