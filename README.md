@@ -1,4 +1,4 @@
-#1uch0 @2025
+# 1uch0 @2025
 # Multi-Decoder Python | Python tool to encode and decode messages with various common methods in CTF and programming:
 
 import base64
@@ -6,7 +6,7 @@ import binascii
 import codecs
 import urllib.parse
 
-# ----- Funciones de codificación/decodificación -----
+# ----- Funciones Base64 -----
 def encode_base64(text):
     return base64.b64encode(text.encode()).decode()
 
@@ -16,6 +16,7 @@ def decode_base64(text):
     except Exception:
         return "❌ Invalid Base64 input"
 
+# ----- Funciones Hex -----
 def encode_hex(text):
     return binascii.hexlify(text.encode()).decode()
 
@@ -25,17 +26,43 @@ def decode_hex(text):
     except Exception:
         return "❌ Invalid Hex input"
 
+# ----- Funciones ROT13 -----
 def encode_rot13(text):
     return codecs.encode(text, 'rot_13')
 
 def decode_rot13(text):
     return codecs.decode(text, 'rot_13')
 
+# ----- Funciones URL -----
 def encode_url(text):
     return urllib.parse.quote(text)
 
 def decode_url(text):
     return urllib.parse.unquote(text)
+
+# ----- Funciones Binario -----
+def text_to_binary(text):
+    return ' '.join(format(ord(c), '08b') for c in text)
+
+def binary_to_text(binary_str):
+    try:
+        binary_values = binary_str.split()
+        ascii_chars = [chr(int(b, 2)) for b in binary_values]
+        return ''.join(ascii_chars)
+    except ValueError:
+        return "❌ Invalid binary input"
+
+def binary_to_decimal(binary_str):
+    try:
+        return int(binary_str, 2)
+    except ValueError:
+        return "❌ Invalid binary input"
+
+def binary_to_hex(binary_str):
+    try:
+        return hex(int(binary_str, 2))
+    except ValueError:
+        return "❌ Invalid binary input"
 
 # ----- Menú interactivo -----
 def menu():
@@ -48,7 +75,11 @@ def menu():
     print("6. Decode from ROT13")
     print("7. Encode to URL")
     print("8. Decode from URL")
-    print("9. Exit")
+    print("9. Text → Binary")
+    print("10. Binary → Text")
+    print("11. Binary → Decimal")
+    print("12. Binary → Hexadecimal")
+    print("13. Exit")
 
 # ----- Función principal -----
 def main():
@@ -89,6 +120,22 @@ def main():
             print("Decoded:", decode_url(text))
 
         elif option == "9":
+            text = input("Text to convert to binary: ")
+            print("Binary:", text_to_binary(text))
+
+        elif option == "10":
+            binary = input("Binary (space-separated) to convert to text: ")
+            print("Text:", binary_to_text(binary))
+
+        elif option == "11":
+            binary = input("Binary number to convert to decimal: ")
+            print("Decimal:", binary_to_decimal(binary))
+
+        elif option == "12":
+            binary = input("Binary number to convert to hex: ")
+            print("Hexadecimal:", binary_to_hex(binary))
+
+        elif option == "13":
             print("Exiting... 👋")
             break
 
@@ -99,5 +146,5 @@ def main():
 if __name__ == "__main__":
     main()
 
-![Script demo](Multidecoder.gif)
-
+# Demo
+# ![Script demo](Multidecoder.gif)
