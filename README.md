@@ -1,58 +1,56 @@
-# Text Converter Tool
+# MultiCodec
 
-Herramienta de línea de comandos para convertir texto entre múltiples formatos de codificación. Pensada para aprendizaje de ciberseguridad, CTF, análisis forense básico y experimentación con representaciones de datos (texto, binario, hexadecimal, Base64, ROT13 y URL encoding).
+**MultiCodec** es una herramienta educativa para conversión de texto entre múltiples formatos de codificación. Útil en ciberseguridad, CTF, análisis forense, OSINT, y clases de representación de datos.
 
 Autor: **1uch0 @2025**
 
 ---
 
-## Funcionalidades
+## ✨ Funcionalidades
 
 Conversión entre:
 
 - **Base64**
-  - `Text → Base64`
-  - `Base64 → Text`
+  - Text → Base64
+  - Base64 → Text
 - **Hexadecimal**
-  - `Text → Hex`
-  - `Hex → Text`
+  - Text → Hex
+  - Hex → Text
 - **ROT13**
-  - `Encode / Decode`
+  - Encode / Decode
 - **URL encoding**
-  - `Encode / Decode`
+  - Encode / Decode
 - **Binario**
-  - `Text → Binary` (8 bits por carácter)
-  - `Binary → Text`
-  - `Binary → Decimal`
-  - `Binary → Hex`
-- **Modo forense (Smart Decode)**
-  - Intenta detectar automáticamente si la entrada es:
-    - Base64
-    - Hex
-    - Binario
-    - URL encoded
-    - ROT13
-  - Devuelve todos los decodificados posibles.
+  - Text → Binary (8 bits por carácter)
+  - Binary → Text
+  - Binary → Decimal
+  - Binary → Hex
+- **Modo Forense (Smart Decode)**
+  Detecta posibles codificaciones en una cadena sospechosa y las decodifica si es posible:
+  - Base64
+  - Hex
+  - Binary
+  - URL
+  - ROT13
 
 ---
 
-## Estructura del proyecto
+## 🧩 Estructura del Proyecto
 
 ```text
-.
+MultiCodec/
 ├─ converter.py          # CLI principal
 ├─ gui.py                # Interfaz gráfica (Tkinter)
 ├─ index.html            # Versión web estática (HTML+JS)
-├─ requirements.txt      # Dependencias Python
+├─ requirements.txt      # Dependencias Python (mínimas)
 └─ tests/
    └─ test_converter.py  # Pruebas unitarias (pytest)
 
 Uso (CLI)
-Ejecutar:
-python converter.py
+Ejecuta:
+python3 converter.py
 
-Menú principal:
-
+Menú interactivo:
 === TEXT CONVERTER TOOL ===
 1. Encode Base64
 2. Decode Base64
@@ -69,105 +67,52 @@ Menú principal:
 13. Smart Decode (Forense)
 14. Exit
 
+Versión Web (HTML + JS)
+La versión web se encuentra en index.html.
+Opciones:
+abrir directamente (offline), o
+publicar en GitHub Pages:
+Instrucciones:
+Ir a: Settings → Pages
+Source: main — /root
+Guardar
 
-Ejemplo: Text → Hex
-
-Opción 3
-
-Texto: hola
-
-Resultado: 686f6c61
-
-Ejemplo: Binary → Hex
-
-Opción 12
-
-Binario: 01101000 01101111 01101100 01100001
-
-Resultado: 686f6c61
-
-Versión Web (estática)
-
-El archivo index.html contiene una versión 100% estática (HTML + CSS + JS):
-
-Funciona directamente en el navegador (doble clic en index.html).
-
-No requiere Python ni servidor.
-
-Ideal para subir a GitHub Pages o usar en clases.
-
-Pruebas
-
-Se incluye un archivo de pruebas con pytest:
-
+Pruebas Unitarias
+Requiere pytest.
 pip install -r requirements.txt
 pytest
 
-
-Las pruebas validan el comportamiento básico de:
-
-Base64
-
-Hex
-
+Pruebas incluidas para:
+Base64 (roundtrip)
+Hex (roundtrip)
 ROT13
-
-Binario ↔ Texto
-
-Binario → Decimal / Hex
-
-Modo Forense (Smart Decode)
-
-El modo forense intenta adivinar el tipo de codificación de una cadena dada y muestra todos los decodificados posibles.
-
-Ejemplo de uso:
-
-Seleccionar opción 13 en el menú.
-
-Pegar una cadena sospechosa (por ejemplo, de un correo, payload, CTF).
-
-Revisar las posibles decodificaciones sugeridas.
-
+Text ↔ Binary
+Binary → Decimal / Hex
+Smart Decode para formatos comunes
 Interfaz Gráfica (GUI)
-
 Archivo: gui.py
-
-Usa Tkinter (incluido en Python estándar).
-
-Permite:
-
-Escribir un texto
-
-Elegir tipo de conversión
-
-Ver el resultado en un cuadro de texto
-
-Pensado para demostraciones rápidas en laboratorio.
-
+Usa Tkinter, incluido en Python estándar.
+Permite elegir modo, ingresar texto y ver resultado en tiempo real. Ideal para uso en sala de computación.
+Modo Forense (Smart Decode)
+Perfecto para payloads en CTF, correos sospechosos o cadenas pegadas desde logs.
+Ejemplo de salida:
+[Base64]
+hola
+[Hex → Text]
+hola
+[Binary → Text]
+hola
 Instalación
-
-Clonar el repositorio:
-
-git clone https://github.com/TU-USUARIO/TU-REPO.git
-cd TU-REPO
-
-
-Instalar dependencias (mínimas):
-
+git clone https://github.com/TU-USUARIO/MultiCodec.git
+cd MultiCodec
 pip install -r requirements.txt
-
 Roadmap
-
-Ideas futuras:
-
-Detección automática multi-etapa (encode anidado).
-
-Hashing (MD5, SHA-1, SHA-256).
-
-Integración con módulos de análisis forense.
-
-Versión web mejorada con historial y exportación.
-
+Características planeadas:
+Hashing (MD5, SHA1, SHA256)
+Smart multi-decode recursivo (detecta capas)
+Exportar resultados JSON/CSV
+Integración con clipboard
+Versión Web avanzada con historial
+WebAssembly para rendimiento
 Licencia
-
-Uso educativo. Puedes adaptar y reutilizar el código citando al autor original (1uch0 @2025) y enlazando el repositorio.
+Uso educativo. Puedes adaptar y reutilizar citando al autor 1uch0 @2025.
