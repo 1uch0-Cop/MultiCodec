@@ -99,4 +99,4 @@ Perfecto para payloads en CTF, correos sospechosos o cadenas pegadas desde logs.
 Licencia
 Uso educativo. Puedes adaptar y reutilizar citando al autor 1uch0 @2025.
 
-![Demo](Multidecoder.gif)
+![Demo](https://raw.githubusercontent.com/1uch0-Cop/MultiCodec/d3975f75cfc39725e92c9e05248224bf8eeb0554/Multidecoder.gif)
