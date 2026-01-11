@@ -6,7 +6,7 @@ Autor: **1uch0 @2025**
 
 ---
 
-## ✨ Funcionalidades
+## Funcionalidades
 
 Conversión entre:
 
@@ -35,7 +35,7 @@ Conversión entre:
 
 ---
 
-## 🧩 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```text
 MultiCodec/
