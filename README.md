@@ -95,24 +95,8 @@ Usa Tkinter, incluido en Python estándar.
 Permite elegir modo, ingresar texto y ver resultado en tiempo real. Ideal para uso en sala de computación.
 Modo Forense (Smart Decode)
 Perfecto para payloads en CTF, correos sospechosos o cadenas pegadas desde logs.
-Ejemplo de salida:
-[Base64]
-hola
-[Hex → Text]
-hola
-[Binary → Text]
-hola
-Instalación
-git clone https://github.com/TU-USUARIO/MultiCodec.git
-cd MultiCodec
-pip install -r requirements.txt
-Roadmap
-Características planeadas:
-Hashing (MD5, SHA1, SHA256)
-Smart multi-decode recursivo (detecta capas)
-Exportar resultados JSON/CSV
-Integración con clipboard
-Versión Web avanzada con historial
-WebAssembly para rendimiento
+
 Licencia
 Uso educativo. Puedes adaptar y reutilizar citando al autor 1uch0 @2025.
+
+![Demo](docs/demo.gif)
