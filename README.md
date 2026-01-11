@@ -149,7 +149,7 @@ Decodificación inteligente de payloads (detect Base64 / Hex / URL / ROT13 autom
 
 Versión Web en JavaScript para Chrome/Firefox
 
-Si quieres contribuir, adelante: los conversores siempre evolucionan.
+
 
 Autoría
 
