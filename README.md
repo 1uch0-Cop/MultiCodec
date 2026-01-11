@@ -155,17 +155,3 @@ Autoría
 
 Proyecto por 1uch0 (2025).
 Creado inicialmente como herramienta educativa para manipulación básica de datos en contextos de ciberseguridad.
-
-Licencia
-
-Puedes añadir una de estas según tus preferencias:
-
-MIT
-
-Apache 2.0
-
-GPLv3
-
-Creative Commons BY-SA (si es educativo)
-
-Si no usas ninguna, se asumirá "todos los derechos reservados".
