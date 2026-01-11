@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Text Converter Tool – Web</title>
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 20px; max-width: 900px; }
+    textarea, input, select { width: 100%; font-family: "Consolas", monospace; margin-bottom: 8px; }
+    textarea { height: 120px; }
+    .btn { padding: 8px 16px; border: 1px solid #444; background: #f5f5f5; cursor: pointer; margin-right: 8px; }
+    .card { border: 1px solid #ddd; padding: 16px; margin-top: 20px; }
+    h1, h2 { margin-top: 0.4em; }
+  </style>
+</head>
+<body>
+  <h1>Text Converter Tool – Web</h1>
+  <p>Versión web estática del conversor de texto: Base64, Hex, ROT13, URL, Binario y modo forense simple.</p>
+
+  <div class="card">
+    <h2>Conversión básica</h2>
+    <label>Modo:</label>
+    <select id="mode">
+      <option value="b64e">Text → Base64</option>
+      <option value="b64d">Base64 → Text</option>
+      <option value="hexe">Text → Hex</option>
+      <option value="hexd">Hex → Text</option>
+      <option value="rot13e">Text → ROT13</option>
+      <option value="rot13d">ROT13 → Text</option>
+      <option value="urle">Text → URL encode</option>
+      <option value="urld">URL → Text</option>
+      <option value="t2b">Text → Binary</option>
+      <option value="b2t">Binary → Text</option>
+      <option value="b2d">Binary → Decimal</option>
+      <option value="b2h">Binary → Hex</option>
+      <option value="smart">Smart Decode (Forense)</option>
+    </select>
+
+    <label>Entrada:</label>
+    <textarea id="input"></textarea>
+
+    <button class="btn" onclick="convert()">Convertir</button>
+
+    <label>Salida:</label>
+    <textarea id="output" readonly></textarea>
+  </div>
+
+  <script>
+    function textToBinary(text) {
+      return Array.from(text).map(c => c.charCodeAt(0).toString(2).padStart(8, "0")).join(" ");
+    }
+
+    function binaryToText(binary) {
+      try {
+        return binary.trim().split(/\s+/).map(b => String.fromCharCode(parseInt(b, 2))).join("");
+      } catch {
+        return "⚠️ Invalid binary sequence.";
+      }
+    }
+
+    function binaryToDecimal(binary) {
+      try {
+        return String(parseInt(binary.replace(/\s+/g, ""), 2));
+      } catch {
+        return "⚠️ Invalid binary number.";
+      }
+    }
+
+    function binaryToHex(binary) {
+      try {
+        return parseInt(binary.replace(/\s+/g, ""), 2).toString(16);
+      } catch {
+        return "⚠️ Invalid binary number.";
+      }
+    }
+
+    function encodeBase64(text) {
+      return btoa(unescape(encodeURIComponent(text)));
+    }
+
+    function decodeBase64(text) {
+      try {
+        if (text.replace(/\s+/g, "").length % 4 !== 0) {
+          return "⚠️ Invalid Base64 input (length must be multiple of 4).";
+        }
+        return decodeURIComponent(escape(atob(text)));
+      } catch {
+        return "⚠️ Invalid Base64 input.";
+      }
+    }
+
+    function encodeHex(text) {
+      return Array.from(text).map(c => c.charCodeAt(0).toString(16).padStart(2, "0")).join("");
+    }
+
+    function decodeHex(text) {
+      const clean = text.replace(/\s+/g, "");
+      if (clean.length % 2 !== 0) return "⚠️ Invalid Hex input.";
+      try {
+        let out = "";
+        for (let i = 0; i < clean.length; i += 2) {
+          out += String.fromCharCode(parseInt(clean.substr(i, 2), 16));
+        }
+        return out;
+      } catch {
+        return "⚠️ Invalid Hex input.";
+      }
+    }
+
+    function rot13(text) {
+      return text.replace(/[a-zA-Z]/g, function (c) {
+        const base = c <= "Z" ? 65 : 97;
+        return String.fromCharCode(((c.charCodeAt(0) - base + 13) % 26) + base);
+      });
+    }
+
+    function smartDecode(value) {
+      const results = [];
+      const trimmed = value.trim();
+
+      // Base64
+      const b64Clean = trimmed.replace(/\s+/g, "");
+      const b64Allowed = /^[A-Za-z0-9+/=]+$/;
+      if (b64Clean.length > 0 && b64Clean.length % 4 === 0 && b64Allowed.test(b64Clean)) {
+        results.push(["Base64", decodeBase64(trimmed)]);
+      }
+
+      // Hex
+      const hexClean = trimmed.replace(/\s+/g, "");
+      const hexAllowed = /^[0-9a-fA-F]+$/;
+      if (hexClean.length > 0 && hexClean.length % 2 === 0 && hexAllowed.test(hexClean)) {
+        results.push(["Hex → Text", decodeHex(trimmed)]);
+      }
+
+      // Binario
+      const binAllowed = /^[01\s]+$/;
+      if (binAllowed.test(trimmed) && /[01]/.test(trimmed)) {
+        results.push(["Binary → Text", binaryToText(trimmed)]);
+        results.push(["Binary → Decimal", binaryToDecimal(trimmed)]);
+        results.push(["Binary → Hex", binaryToHex(trimmed)]);
+      }
+
+      // URL
+      if (trimmed.includes("%") || trimmed.includes("+")) {
+        try {
+          results.push(["URL decoded", decodeURIComponent(trimmed.replace(/\+/g, " "))]);
+        } catch {
+          results.push(["URL decoded", "⚠️ Invalid URL input."]);
+        }
+      }
+
+      // ROT13
+      results.push(["ROT13", rot13(trimmed)]);
+
+      if (results.length === 0) {
+        return "No se detectó ningún formato claro. Revisa manualmente.";
+      }
+
+      return results.map(([label, val]) => `[${label}]\n${val}`).join("\n\n");
+    }
+
+    function convert() {
+      const mode = document.getElementById("mode").value;
+      const input = document.getElementById("input").value || "";
+      let out = "";
+
+      switch (mode) {
+        case "b64e":
+          out = encodeBase64(input);
+          break;
+        case "b64d":
+          out = decodeBase64(input);
+          break;
+        case "hexe":
+          out = encodeHex(input);
+          break;
+        case "hexd":
+          out = decodeHex(input);
+          break;
+        case "rot13e":
+          out = rot13(input);
+          break;
+        case "rot13d":
+          out = rot13(input);
+          break;
+        case "urle":
+          out = encodeURIComponent(input);
+          break;
+        case "urld":
+          try {
+            out = decodeURIComponent(input.replace(/\+/g, " "));
+          } catch {
+            out = "⚠️ Invalid URL input.";
+          }
+          break;
+        case "t2b":
+          out = textToBinary(input);
+          break;
+        case "b2t":
+          out = binaryToText(input);
+          break;
+        case "b2d":
+          out = binaryToDecimal(input);
+          break;
+        case "b2h":
+          out = binaryToHex(input);
+          break;
+        case "smart":
+          out = smartDecode(input);
+          break;
+      }
+
+      document.getElementById("output").value = out;
+    }
+  </script>
+</body>
+</html>
