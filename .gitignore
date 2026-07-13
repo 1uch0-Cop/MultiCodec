@@ -26,3 +26,8 @@ Thumbs.db
 # Node.js
 node_modules/
 npm-debug.log*
+
+# Empaquetado Python
+build/
+dist/
+*.egg-info/
