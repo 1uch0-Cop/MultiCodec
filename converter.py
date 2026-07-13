@@ -1,229 +1,407 @@
-
----
-
-## 2. `converter.py` (código refactorizado + modo forense)
-
-```python
 #!/usr/bin/env python3
-# 1uch0 @2025
+"""MultiCodec: conversiones educativas de texto y representaciones de datos."""
+
+from __future__ import annotations
 
 import base64
+import binascii
 import codecs
+import re
 import urllib.parse
 
 
-def menu() -> None:
-    print("\n=== TEXT CONVERTER TOOL ===")
-    print("1. Encode Base64")
-    print("2. Decode Base64")
-    print("3. Encode Hex")
-    print("4. Decode Hex")
-    print("5. Encode ROT13")
-    print("6. Decode ROT13")
-    print("7. Encode URL")
-    print("8. Decode URL")
-    print("9. Text → Binary")
-    print("10. Binary → Text")
-    print("11. Binary → Decimal")
-    print("12. Binary → Hex")
-    print("13. Smart Decode (Forense)")
-    print("14. Exit")
+INVALID_BASE64 = "⚠️ Entrada Base64 inválida."
+INVALID_BASE64_TEXT = (
+    "⚠️ Base64 válido, pero el contenido no es texto UTF-8."
+)
+INVALID_HEX = "⚠️ Entrada hexadecimal inválida."
+INVALID_HEX_TEXT = (
+    "⚠️ Hexadecimal válido, pero el contenido no es texto UTF-8."
+)
+INVALID_BINARY = "⚠️ Secuencia binaria inválida."
+INVALID_BINARY_TEXT = (
+    "⚠️ Binario válido, pero el contenido no es texto UTF-8."
+)
+INVALID_URL = "⚠️ Codificación URL inválida."
 
-
-# --- Funciones de codificación/decodificación --- #
 
 def encode_base64(text: str) -> str:
-    return base64.b64encode(text.encode()).decode()
+    """Codifica texto UTF-8 como Base64."""
+    return base64.b64encode(text.encode("utf-8")).decode("ascii")
 
 
 def decode_base64(text: str) -> str:
+    """Decodifica Base64 estricto y devuelve texto UTF-8."""
+    compact = "".join(text.split())
+
     try:
-        if len(text) % 4 != 0:
-            return "⚠️ Invalid Base64 input (length must be multiple of 4)."
-        return base64.b64decode(text.encode()).decode(errors="ignore")
-    except Exception:
-        return "⚠️ Invalid Base64 input."
+        decoded = base64.b64decode(compact, validate=True)
+    except (binascii.Error, ValueError):
+        return INVALID_BASE64
+
+    try:
+        return decoded.decode("utf-8")
+    except UnicodeDecodeError:
+        return INVALID_BASE64_TEXT
 
 
 def encode_hex(text: str) -> str:
-    return text.encode().hex()
+    """Codifica texto UTF-8 como hexadecimal."""
+    return text.encode("utf-8").hex()
 
 
 def decode_hex(text: str) -> str:
+    """Decodifica hexadecimal y devuelve texto UTF-8."""
     try:
-        return bytes.fromhex(text).decode(errors="ignore")
-    except Exception:
-        return "⚠️ Invalid Hex input."
+        decoded = bytes.fromhex(text)
+    except ValueError:
+        return INVALID_HEX
+
+    try:
+        return decoded.decode("utf-8")
+    except UnicodeDecodeError:
+        return INVALID_HEX_TEXT
 
 
 def encode_rot13(text: str) -> str:
+    """Aplica ROT13 al texto."""
     return codecs.encode(text, "rot_13")
 
 
 def decode_rot13(text: str) -> str:
-    try:
-        return codecs.decode(text, "rot_13")
-    except Exception:
-        return "⚠️ Invalid ROT13 input."
+    """Revierte ROT13; la operación es simétrica."""
+    return codecs.decode(text, "rot_13")
 
 
 def encode_url(text: str) -> str:
-    return urllib.parse.quote(text)
+    """Codifica texto como componente de una URL."""
+    return urllib.parse.quote(
+        text,
+        safe="",
+        encoding="utf-8",
+        errors="strict",
+    )
 
 
 def decode_url(text: str) -> str:
+    """Decodifica secuencias porcentuales de una URL."""
+    if re.search(r"%(?![0-9A-Fa-f]{2})", text):
+        return INVALID_URL
+
     try:
-        return urllib.parse.unquote(text)
-    except Exception:
-        return "⚠️ Invalid URL input."
+        return urllib.parse.unquote(
+            text,
+            encoding="utf-8",
+            errors="strict",
+        )
+    except UnicodeDecodeError:
+        return INVALID_URL
 
 
 def text_to_binary(text: str) -> str:
-    return " ".join(format(ord(char), "08b") for char in text)
+    """Representa cada byte UTF-8 con ocho bits."""
+    return " ".join(
+        f"{byte:08b}"
+        for byte in text.encode("utf-8")
+    )
+
+
+def _clean_binary(binary: str) -> str | None:
+    """Normaliza y valida una secuencia binaria."""
+    compact = "".join(binary.split())
+
+    if not compact:
+        return None
+
+    if any(bit not in "01" for bit in compact):
+        return None
+
+    return compact
 
 
 def binary_to_text(binary: str) -> str:
+    """Convierte grupos binarios de ocho bits en texto UTF-8."""
+    compact = _clean_binary(binary)
+
+    if compact is None or len(compact) % 8 != 0:
+        return INVALID_BINARY
+
+    decoded = bytes(
+        int(compact[index:index + 8], 2)
+        for index in range(0, len(compact), 8)
+    )
+
     try:
-        return "".join(chr(int(b, 2)) for b in binary.split())
-    except Exception:
-        return "⚠️ Invalid binary sequence."
+        return decoded.decode("utf-8")
+    except UnicodeDecodeError:
+        return INVALID_BINARY_TEXT
 
 
 def binary_to_decimal(binary: str) -> str:
-    try:
-        return str(int(binary.replace(" ", ""), 2))
-    except Exception:
-        return "⚠️ Invalid binary number."
+    """Interpreta una secuencia binaria como entero decimal."""
+    compact = _clean_binary(binary)
+
+    if compact is None:
+        return INVALID_BINARY
+
+    return str(int(compact, 2))
 
 
 def binary_to_hex(binary: str) -> str:
+    """Interpreta una secuencia binaria como hexadecimal."""
+    compact = _clean_binary(binary)
+
+    if compact is None:
+        return INVALID_BINARY
+
+    return format(int(compact, 2), "x")
+
+
+def looks_like_binary(value: str) -> bool:
+    """Comprueba si una cadena puede representar bytes binarios."""
+    compact = _clean_binary(value)
+
+    return (
+        compact is not None
+        and len(compact) % 8 == 0
+    )
+
+
+def looks_like_hex(value: str) -> bool:
+    """Comprueba que una cadena tenga estructura hexadecimal."""
+    compact = "".join(value.split())
+
+    return (
+        bool(compact)
+        and len(compact) % 2 == 0
+        and re.fullmatch(
+            r"[0-9A-Fa-f]+",
+            compact,
+        ) is not None
+    )
+
+
+def looks_like_base64(value: str) -> bool:
+    """Comprueba si una cadena tiene estructura Base64 válida."""
+    compact = "".join(value.split())
+
+    if not compact or len(compact) % 4 != 0:
+        return False
+
     try:
-        return hex(int(binary.replace(" ", ""), 2))[2:]
-    except Exception:
-        return "⚠️ Invalid binary number."
-
-
-# --- Modo Forense: detección automática --- #
-
-def looks_like_binary(s: str) -> bool:
-    allowed = {"0", "1", " ", "\t"}
-    return all(c in allowed for c in s) and any(c in {"0", "1"} for c in s)
-
-
-def looks_like_hex(s: str) -> bool:
-    s_clean = s.replace(" ", "")
-    if len(s_clean) == 0 or len(s_clean) % 2 != 0:
-        return False
-    try:
-        int(s_clean, 16)
-        return True
-    except ValueError:
+        base64.b64decode(compact, validate=True)
+    except (binascii.Error, ValueError):
         return False
 
+    return True
 
-def looks_like_base64(s: str) -> bool:
-    s_clean = s.replace("\n", "").replace(" ", "")
-    if len(s_clean) == 0 or len(s_clean) % 4 != 0:
+
+def looks_like_url_encoding(value: str) -> bool:
+    """Detecta al menos una secuencia porcentual válida."""
+    return re.search(
+        r"%[0-9A-Fa-f]{2}",
+        value,
+    ) is not None
+
+
+def _is_readable_text(text: str) -> bool:
+    """Evita presentar bytes de control como texto útil."""
+    if not text:
         return False
-    allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
-    return all(c in allowed for c in s_clean)
+
+    readable = sum(
+        character.isprintable()
+        or character in "\n\r\t"
+        for character in text
+    )
+
+    return readable / len(text) >= 0.85
 
 
-def smart_decode(value: str) -> dict:
+def smart_decode(value: str) -> dict[str, str]:
+    """Prueba automáticamente formatos detectables.
+
+    ROT13 no puede identificarse de manera fiable solo por su
+    estructura, por lo que se mantiene como conversión manual.
     """
-    Intenta decodificar 'value' como varios formatos y devuelve un dict con resultados.
-    No lanza excepciones, solo añade entradas cuando tiene sentido.
-    """
-    results = {}
+    results: dict[str, str] = {}
 
-    # Base64
     if looks_like_base64(value):
-        results["base64"] = decode_base64(value)
+        decoded = decode_base64(value)
 
-    # Hex
+        if (
+            not decoded.startswith("⚠️")
+            and _is_readable_text(decoded)
+        ):
+            results["base64"] = decoded
+
     if looks_like_hex(value):
-        results["hex"] = decode_hex(value)
+        decoded = decode_hex(value)
 
-    # URL
-    if "%" in value or "+" in value:
-        results["url"] = decode_url(value)
+        if (
+            not decoded.startswith("⚠️")
+            and _is_readable_text(decoded)
+        ):
+            results["hex"] = decoded
 
-    # Binario
+    if looks_like_url_encoding(value):
+        decoded = decode_url(value)
+
+        if (
+            decoded != value
+            and not decoded.startswith("⚠️")
+            and _is_readable_text(decoded)
+        ):
+            results["url"] = decoded
+
     if looks_like_binary(value):
-        results["binary_text"] = binary_to_text(value)
+        decoded_text = binary_to_text(value)
+
+        if (
+            not decoded_text.startswith("⚠️")
+            and _is_readable_text(decoded_text)
+        ):
+            results["binary_text"] = decoded_text
+
         results["binary_decimal"] = binary_to_decimal(value)
         results["binary_hex"] = binary_to_hex(value)
-
-    # ROT13 (se prueba siempre)
-    rot13_decoded = decode_rot13(value)
-    results["rot13"] = rot13_decoded
 
     return results
 
 
+def menu() -> None:
+    """Muestra el menú principal."""
+    print(
+        """
+=== MultiCodec ===
+ 1. Texto → Base64
+ 2. Base64 → Texto
+ 3. Texto → Hexadecimal
+ 4. Hexadecimal → Texto
+ 5. Texto → ROT13
+ 6. ROT13 → Texto
+ 7. Texto → URL
+ 8. URL → Texto
+ 9. Texto → Binario
+10. Binario → Texto
+11. Binario → Decimal
+12. Binario → Hexadecimal
+13. Análisis automático
+14. Salir
+""".strip()
+    )
+
+
 def run_smart_decode() -> None:
-    value = input("Texto / cadena sospechosa a analizar: ")
+    """Solicita una cadena y muestra los formatos detectados."""
+    value = input("Cadena a analizar: ")
     results = smart_decode(value)
+
     if not results:
-        print("\nNo se detectó ningún formato claro. Revisa manualmente.")
+        print("\nNo se detectó una codificación compatible.")
+        print("Nota: ROT13 debe probarse manualmente.")
         return
 
-    print("\n=== Resultados Smart Decode ===")
-    for fmt, decoded in results.items():
-        print(f"\n[{fmt}]")
-        print(decoded)
+    print("\n=== Resultados ===")
 
+    for format_name, decoded in results.items():
+        print(f"\n[{format_name}]\n{decoded}")
 
-# --- Programa principal --- #
 
 def main() -> None:
+    """Ejecuta la interfaz de línea de comandos."""
+    actions = {
+        "1": (
+            "Texto: ",
+            encode_base64,
+            "Base64",
+        ),
+        "2": (
+            "Base64: ",
+            decode_base64,
+            "Texto",
+        ),
+        "3": (
+            "Texto: ",
+            encode_hex,
+            "Hexadecimal",
+        ),
+        "4": (
+            "Hexadecimal: ",
+            decode_hex,
+            "Texto",
+        ),
+        "5": (
+            "Texto: ",
+            encode_rot13,
+            "ROT13",
+        ),
+        "6": (
+            "ROT13: ",
+            decode_rot13,
+            "Texto",
+        ),
+        "7": (
+            "Texto: ",
+            encode_url,
+            "URL",
+        ),
+        "8": (
+            "URL: ",
+            decode_url,
+            "Texto",
+        ),
+        "9": (
+            "Texto: ",
+            text_to_binary,
+            "Binario",
+        ),
+        "10": (
+            "Binario: ",
+            binary_to_text,
+            "Texto",
+        ),
+        "11": (
+            "Binario: ",
+            binary_to_decimal,
+            "Decimal",
+        ),
+        "12": (
+            "Binario: ",
+            binary_to_hex,
+            "Hexadecimal",
+        ),
+    }
+
     while True:
         menu()
-        option = input("\nChoose an option: ").strip()
 
-        if option == "1":
-            text = input("Text to encode in Base64: ")
-            print("Encoded:", encode_base64(text))
-        elif option == "2":
-            text = input("Text in Base64 to decode: ")
-            print("Decoded:", decode_base64(text))
-        elif option == "3":
-            text = input("Text to encode in Hex: ")
-            print("Encoded:", encode_hex(text))
-        elif option == "4":
-            text = input("Text in Hex to decode: ")
-            print("Decoded:", decode_hex(text))
-        elif option == "5":
-            text = input("Text to encode in ROT13: ")
-            print("Encoded:", encode_rot13(text))
-        elif option == "6":
-            text = input("Text in ROT13 to decode: ")
-            print("Decoded:", decode_rot13(text))
-        elif option == "7":
-            text = input("Text to encode in URL: ")
-            print("Encoded:", encode_url(text))
-        elif option == "8":
-            text = input("Text in URL to decode: ")
-            print("Decoded:", decode_url(text))
-        elif option == "9":
-            text = input("Text to convert to binary: ")
-            print("Binary:", text_to_binary(text))
-        elif option == "10":
-            binary = input("Binary (space-separated) to convert to text: ")
-            print("Text:", binary_to_text(binary))
-        elif option == "11":
-            binary = input("Binary number to convert to decimal: ")
-            print("Decimal:", binary_to_decimal(binary))
-        elif option == "12":
-            binary = input("Binary number to convert to hex: ")
-            print("Hexadecimal:", binary_to_hex(binary))
-        elif option == "13":
-            run_smart_decode()
-        elif option == "14":
-            print("Exiting... 👋")
+        try:
+            option = input(
+                "\nSelecciona una opción: "
+            ).strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nSaliendo de MultiCodec.")
             break
-        else:
-            print("❌ Invalid option, try again.")
+
+        if option == "14":
+            print("Saliendo de MultiCodec.")
+            break
+
+        if option == "13":
+            run_smart_decode()
+            continue
+
+        action = actions.get(option)
+
+        if action is None:
+            print("❌ Opción inválida.")
+            continue
+
+        prompt, function, label = action
+        value = input(prompt)
+
+        print(f"{label}: {function(value)}")
 
 
 if __name__ == "__main__":
