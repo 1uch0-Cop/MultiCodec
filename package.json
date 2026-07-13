@@ -1,0 +1,10 @@
+{
+  "name": "multicodec",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pruebas del motor web de MultiCodec",
+  "scripts": {
+    "test:web": "node --test tests/test_web.mjs"
+  }
+}

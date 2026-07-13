@@ -22,3 +22,7 @@ env/
 # Sistema operativo
 .DS_Store
 Thumbs.db
+
+# Node.js
+node_modules/
+npm-debug.log*
