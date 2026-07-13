@@ -9,7 +9,7 @@ description = "Herramienta educativa para conversiones Base64, hexadecimal, ROT1
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
-    { name = "Luis Jofré Pérez" }
+    { name = "1uch0-Cop" }
 ]
 keywords = [
     "education",
